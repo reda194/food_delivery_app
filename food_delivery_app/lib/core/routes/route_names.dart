@@ -26,6 +26,8 @@ class RouteNames {
   static const String orders = '/orders';
   static const String orderDetails = '/order-details';
   static const String orderTracking = '/order-tracking';
+  static const String call = '/call';
+  static const String chat = '/chat';
 
   // Profile Routes
   static const String profile = '/profile';

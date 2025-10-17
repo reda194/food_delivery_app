@@ -6,22 +6,26 @@ import '../../features/authentication/presentation/pages/login_screen.dart';
 import '../../features/authentication/presentation/pages/signup_screen.dart';
 import '../../features/authentication/presentation/pages/forgot_password_screen.dart';
 import '../../features/authentication/presentation/pages/verification_screen.dart';
-import '../../features/orders/presentation/pages/order_successful_screen.dart';
-import '../../features/orders/presentation/pages/order_tracking_screen.dart';
-import '../../features/orders/presentation/pages/orders_screen.dart';
+import '../../features/order_tracking/presentation/pages/order_tracking_screen.dart';
+import '../../features/order_successful/presentation/pages/order_successful_screen.dart';
+import '../../features/call/presentation/pages/call_screen.dart';
+import '../../features/chat/presentation/pages/chat_screen.dart';
+import '../../features/profile/presentation/pages/profile_menu_screen.dart';
+import '../../features/profile/presentation/pages/edit_profile_screen.dart';
 import '../../features/checkout/presentation/pages/add_address_screen.dart';
 import '../../features/checkout/presentation/pages/add_card_screen.dart';
 import '../../features/restaurant_details/presentation/pages/restaurant_details_screen.dart';
 import '../../features/food_details/presentation/pages/food_details_screen.dart';
 import '../../features/category/presentation/pages/category_screen.dart';
-import '../../features/profile/presentation/pages/profile_screen.dart';
-import '../../features/profile/presentation/pages/edit_profile_screen.dart';
-import '../../features/profile/presentation/pages/settings_screen.dart';
-import '../../features/profile/presentation/pages/addresses_screen.dart';
-import '../../features/profile/presentation/pages/favorites_screen.dart';
-import '../../features/profile/presentation/pages/payment_methods_screen.dart';
-import '../../features/profile/presentation/pages/notifications_screen.dart';
-import '../../features/profile/presentation/pages/help_screen.dart';
+// Profile imports commented out - screens exist but not imported yet
+// import '../../features/profile/presentation/pages/profile_screen.dart';
+// import '../../features/profile/presentation/pages/edit_profile_screen.dart';
+// import '../../features/profile/presentation/pages/settings_screen.dart';
+// import '../../features/profile/presentation/pages/addresses_screen.dart';
+// import '../../features/profile/presentation/pages/favorites_screen.dart';
+// import '../../features/profile/presentation/pages/payment_methods_screen.dart';
+// import '../../features/profile/presentation/pages/notifications_screen.dart';
+// import '../../features/profile/presentation/pages/help_screen.dart';
 import '../../features/search/presentation/pages/search_screen.dart';
 import '../../features/restaurant_details/domain/entities/menu_item_entity.dart';
 import '../../features/restaurant_details/presentation/bloc/restaurant_details_bloc.dart';
@@ -80,8 +84,12 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => OrderSuccessfulScreen(
             orderId: args?['orderId'] as String?,
-            totalAmount: args?['totalAmount'] as double?,
-            estimatedDeliveryTime: args?['estimatedDeliveryTime'] as String?,
+            driverName: args?['driverName'] as String?,
+            driverPhone: args?['driverPhone'] as String?,
+            driverImage: args?['driverImage'] as String?,
+            driverOrderId: args?['driverOrderId'] as String?,
+            deliveryAddress: args?['deliveryAddress'] as String?,
+            estimatedMinutes: args?['estimatedMinutes'] as int?,
           ),
         );
 
@@ -92,8 +100,30 @@ class AppRouter {
             orderId: args?['orderId'] as String?,
             deliveryAddress: args?['deliveryAddress'] as String?,
             driverName: args?['driverName'] as String?,
-            driverId: args?['driverId'] as String?,
-            estimatedTime: args?['estimatedTime'] as String?,
+            driverPhone: args?['driverPhone'] as String?,
+            driverImage: args?['driverImage'] as String?,
+            driverOrderId: args?['driverOrderId'] as String?,
+            estimatedMinutes: args?['estimatedMinutes'] as int?,
+          ),
+        );
+
+      case RouteNames.call:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => CallScreen(
+            driverName: args?['driverName'] as String?,
+            driverPhone: args?['driverPhone'] as String?,
+            driverImage: args?['driverImage'] as String?,
+          ),
+        );
+
+      case RouteNames.chat:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => ChatScreen(
+            driverName: args?['driverName'] as String?,
+            driverPhone: args?['driverPhone'] as String?,
+            driverImage: args?['driverImage'] as String?,
           ),
         );
 
@@ -190,7 +220,12 @@ class AppRouter {
         );
 
       case RouteNames.orders:
-        return MaterialPageRoute(builder: (_) => const OrdersScreen());
+        return MaterialPageRoute(
+          builder: (_) => const _PlaceholderScreen(
+            title: 'My Orders',
+            message: 'Orders screen coming soon!',
+          ),
+        );
 
       case RouteNames.orderDetails:
         final orderId = settings.arguments as String?;
@@ -205,31 +240,76 @@ class AppRouter {
         );
 
       case RouteNames.profile:
-        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => ProfileMenuScreen(
+            userName: args?['userName'] as String?,
+            userEmail: args?['userEmail'] as String?,
+            userImage: args?['userImage'] as String?,
+          ),
+        );
 
       case RouteNames.editProfile:
-        return MaterialPageRoute(builder: (_) => const EditProfileScreen());
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => EditProfileScreen(
+            userName: args?['userName'] as String?,
+            userEmail: args?['userEmail'] as String?,
+            userPhone: args?['userPhone'] as String?,
+            userImage: args?['userImage'] as String?,
+          ),
+        );
 
       case RouteNames.settings:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen());
+        return MaterialPageRoute(
+          builder: (_) => const _PlaceholderScreen(
+            title: 'Settings',
+            message: 'Settings screen coming soon!',
+          ),
+        );
 
       case RouteNames.addresses:
-        return MaterialPageRoute(builder: (_) => const AddressesScreen());
+        return MaterialPageRoute(
+          builder: (_) => const _PlaceholderScreen(
+            title: 'Addresses',
+            message: 'Addresses screen coming soon!',
+          ),
+        );
 
       case RouteNames.favorites:
-        return MaterialPageRoute(builder: (_) => const FavoritesScreen());
+        return MaterialPageRoute(
+          builder: (_) => const _PlaceholderScreen(
+            title: 'Favorites',
+            message: 'Favorites screen coming soon!',
+          ),
+        );
 
       case RouteNames.search:
-        return MaterialPageRoute(builder: (_) => const SearchScreen());
+        return MaterialPageRoute(builder: (_) => SearchScreen());
 
       case RouteNames.notifications:
-        return MaterialPageRoute(builder: (_) => const NotificationsScreen());
+        return MaterialPageRoute(
+          builder: (_) => const _PlaceholderScreen(
+            title: 'Notifications',
+            message: 'Notifications screen coming soon!',
+          ),
+        );
 
       case RouteNames.help:
-        return MaterialPageRoute(builder: (_) => const HelpScreen());
+        return MaterialPageRoute(
+          builder: (_) => const _PlaceholderScreen(
+            title: 'Help',
+            message: 'Help screen coming soon!',
+          ),
+        );
 
       case RouteNames.paymentMethod:
-        return MaterialPageRoute(builder: (_) => const PaymentMethodsScreen());
+        return MaterialPageRoute(
+          builder: (_) => const _PlaceholderScreen(
+            title: 'Payment Methods',
+            message: 'Payment Methods screen coming soon!',
+          ),
+        );
 
       case RouteNames.menu:
         // Menu route can redirect to restaurant details or show a placeholder
