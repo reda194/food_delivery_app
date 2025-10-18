@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 import '../../domain/entities/restaurant_details_entity.dart';
-import 'menu_item_model.dart';
-import 'review_model.dart';
 
 part 'restaurant_details_model.g.dart';
 

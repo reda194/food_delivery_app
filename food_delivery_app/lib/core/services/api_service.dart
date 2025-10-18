@@ -101,10 +101,8 @@ class ApiService {
   Future<void> _addAuthenticationHeader(RequestOptions options) async {
     try {
       final token = _secureStorage.read(key: 'user_token');
-      if (token != null) {
-        options.headers['Authorization'] = 'Bearer $token';
-      }
-    } catch (e) {
+      options.headers['Authorization'] = 'Bearer $token';
+        } catch (e) {
       _logger.warning('Failed to add auth header: $e');
     }
   }
@@ -145,9 +143,9 @@ class ApiService {
       // If refresh fails, clear tokens and force re-login
       await _secureStorage.deleteAll();
       _logger.error('Token refresh failed: $e');
-      
+
       // Navigate to login screen (would need to be handled by app state)
-      throw AuthException('Session expired. Please log in again.');
+      throw AppAuthException('Session expired. Please log in again.');
     }
   }
 
@@ -169,7 +167,7 @@ class ApiService {
           case 400:
             return ValidationException(message);
           case 401:
-            return AuthException(message);
+            return AppAuthException(message);
           case 403:
             return UnauthorizedException(message);
           case 404:
@@ -527,7 +525,7 @@ class ApiService {
       return _mapDioErrorToException(error);
     }
     if (error is Exception) {
-      return error as Exception;
+      return error;
     }
     return ServerException(AppConstants.defaultErrorMessage);
   }
@@ -572,5 +570,5 @@ class CachedResponse {
 
 /// Rate limit exception
 class RateLimitException extends AppException {
-  RateLimitException(String message) : super(message);
+  RateLimitException(super.message);
 }

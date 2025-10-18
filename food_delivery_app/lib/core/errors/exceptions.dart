@@ -10,67 +10,61 @@ class AppException implements Exception {
 
 /// Server Exception
 class ServerException extends AppException {
-  ServerException([String message = 'Server error occurred'])
-      : super(message);
+  ServerException([super.message = 'Server error occurred']);
 }
 
 /// Cache Exception
 class CacheException extends AppException {
-  CacheException([String message = 'Cache error occurred']) : super(message);
+  CacheException([super.message = 'Cache error occurred']);
 }
 
 /// Network Exception
 class NetworkException extends AppException {
-  NetworkException([String message = 'Network error - check your connection'])
-      : super(message);
+  NetworkException([super.message = 'Network error - check your connection']);
 }
 
 /// Authentication Exception
-class AuthException extends AppException {
-  AuthException([String message = 'Authentication failed']) : super(message);
+/// Note: Named AppAuthException to avoid conflict with Supabase's AuthException
+class AppAuthException extends AppException {
+  AppAuthException([super.message = 'Authentication failed']);
 }
 
 /// Not Found Exception
 class NotFoundException extends AppException {
-  NotFoundException([String message = 'Resource not found'])
-      : super(message);
+  NotFoundException([super.message = 'Resource not found']);
 }
 
 /// Unauthorized Exception
 class UnauthorizedException extends AppException {
-  UnauthorizedException([String message = 'Unauthorized access'])
-      : super(message);
+  UnauthorizedException([super.message = 'Unauthorized access']);
 }
 
 /// Supabase Exception
 class SupabaseException extends AppException {
-  SupabaseException([String message = 'Supabase error occurred'])
-      : super(message);
+  SupabaseException([super.message = 'Supabase error occurred']);
 }
 
 /// Validation Exception
 class ValidationException extends AppException {
-  ValidationException([String message = 'Validation failed']) : super(message);
+  ValidationException([super.message = 'Validation failed']);
 }
 
 /// Database Exception
 class DatabaseException extends AppException {
-  DatabaseException([String message = 'Database error occurred'])
-      : super(message);
+  DatabaseException([super.message = 'Database error occurred']);
 }
 
 /// Timeout Exception
 class TimeoutException extends AppException {
-  TimeoutException([String message = 'Request timed out']) : super(message);
+  TimeoutException([super.message = 'Request timed out']);
 }
 
 /// File Upload Exception
 class FileUploadException extends AppException {
-  FileUploadException([String message = 'File upload failed']) : super(message);
+  FileUploadException([super.message = 'File upload failed']);
 }
 
 /// Real-time Subscription Exception
 class SubscriptionException extends AppException {
-  SubscriptionException([String message = 'Subscription error'])
-      : super(message);
+  SubscriptionException([super.message = 'Subscription error']);
 }

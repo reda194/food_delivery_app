@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import '../services/logger_service.dart';
 
@@ -129,8 +128,8 @@ class PerformanceService {
 
     return PerformanceStats(
       count: count,
-      min: min,
-      max: max,
+      min: min.toInt(),
+      max: max.toInt(),
       mean: mean,
       median: median,
       p90: p90,

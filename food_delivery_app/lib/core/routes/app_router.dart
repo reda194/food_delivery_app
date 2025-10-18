@@ -250,24 +250,13 @@ class AppRouter {
         );
 
       case RouteNames.profile:
-        final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => ProfileMenuScreen(
-            userName: args?['userName'] as String?,
-            userEmail: args?['userEmail'] as String?,
-            userImage: args?['userImage'] as String?,
-          ),
+          builder: (_) => const ProfileMenuScreen(),
         );
 
       case RouteNames.editProfile:
-        final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => EditProfileScreen(
-            userName: args?['userName'] as String?,
-            userEmail: args?['userEmail'] as String?,
-            userPhone: args?['userPhone'] as String?,
-            userImage: args?['userImage'] as String?,
-          ),
+          builder: (_) => const EditProfileScreen(),
         );
 
       case RouteNames.settings:

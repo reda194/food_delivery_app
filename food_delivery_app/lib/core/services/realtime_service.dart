@@ -24,12 +24,12 @@ class RealtimeService {
   /// Subscribe to real-time changes on a table
   Stream<dynamic> subscribeToTable({
     required String table,
-    RealtimeChangeEvent event = RealtimeChangeEvent.all,
-    String? filter,
+    PostgresChangeEvent event = PostgresChangeEvent.all,
+    PostgresChangeFilter? filter,
     String? channelId,
   }) {
     final channelKey = channelId ?? '${table}_subscription';
-    
+
     // Remove existing channel if it exists
     if (_channels.containsKey(channelKey)) {
       unsubscribeFromChannel(channelKey);
@@ -37,31 +37,28 @@ class RealtimeService {
 
     final streamController = StreamController<dynamic>.broadcast();
     _streamControllers[channelKey] = streamController;
-    
+
     try {
       _logger.info('Subscribing to real-time changes on $table');
-      
+
       final channel = _supabase.channel(channelKey);
-      final eventFilter = PostgresChanges(
+
+      channel.onPostgresChanges(
         event: event,
         schema: 'public',
         table: table,
         filter: filter,
-      );
-      
-      channel.onPostgresChanges(
-        [eventFilter],
         callback: (payload) {
           _logger.info('Real-time event received for $table: ${payload.eventType}');
           streamController.add(payload);
         },
       );
-      
+
       channel.subscribe();
       _channels[channelKey] = channel;
-      
+
       return streamController.stream;
-      
+
     } catch (e) {
       _logger.error('Failed to subscribe to $table: $e');
       throw SubscriptionException('Failed to subscribe to $table: $e');
@@ -70,113 +67,160 @@ class RealtimeService {
 
   /// Subscribe to order updates for a specific user
   Stream<dynamic> subscribeToUserOrders(String userId) {
-    final filter = 'user_id=eq.$userId';
     return subscribeToTable(
       table: AppConstants.ordersTable,
-      filter: filter,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'user_id',
+        value: userId,
+      ),
       channelId: 'user_orders_$userId',
     );
   }
 
   /// Subscribe to cart changes for a specific user
   Stream<dynamic> subscribeToUserCart(String userId) {
-    // Subscribe to cart table
-    final cartFilter = 'user_id=eq.$userId';
-    final cartStream = subscribeToTable(
-      table: AppConstants.cartTable,
-      filter: cartFilter,
+    return subscribeToTable(
+      table: AppConstants.cartItemsTable,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'user_id',
+        value: userId,
+      ),
       channelId: 'user_cart_$userId',
     );
-    
-    // Also subscribe to cart_items table
-    final cartItemsFilter = 'user_id=eq.$userId';
-    final cartItemsStream = subscribeToTable(
-      table: AppConstants.cartItemsTable,
-      filter: cartItemsFilter,
-      channelId: 'user_cart_items_$userId',
-    );
-    
-    return _mergeStreams([cartStream, cartItemsStream]);
   }
 
   /// Subscribe to restaurant updates
   Stream<dynamic> subscribeToRestaurantUpdates(String restaurantId) {
-    final filter = 'id=eq.$restaurantId';
     return subscribeToTable(
       table: AppConstants.restaurantsTable,
-      filter: filter,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'id',
+        value: restaurantId,
+      ),
       channelId: 'restaurant_$restaurantId',
     );
   }
 
   /// Subscribe to notifications for a user
   Stream<dynamic> subscribeToUserNotifications(String userId) {
-    final filter = 'user_id=eq.$userId&read=eq.false';
     return subscribeToTable(
       table: AppConstants.notificationsTable,
-      filter: filter,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'user_id',
+        value: userId,
+      ),
       channelId: 'user_notifications_$userId',
     );
   }
 
   /// Subscribe to live delivery tracking
   Stream<dynamic> subscribeToOrderTracking(String orderId) {
-    final filter = 'id=eq.$orderId';
     return subscribeToTable(
       table: AppConstants.ordersTable,
-      filter: filter,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'id',
+        value: orderId,
+      ),
       channelId: 'order_tracking_$orderId',
     );
   }
 
   /// Subscribe to favorite items changes
   Stream<dynamic> subscribeToUserFavorites(String userId) {
-    final filter = 'user_id=eq.$userId';
     return subscribeToTable(
       table: AppConstants.favoritesTable,
-      filter: filter,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'user_id',
+        value: userId,
+      ),
       channelId: 'user_favorites_$userId',
     );
   }
 
   /// Subscribe to reviews for a restaurant
   Stream<dynamic> subscribeToRestaurantReviews(String restaurantId) {
-    final filter = 'restaurant_id=eq.$restaurantId';
     return subscribeToTable(
       table: AppConstants.reviewsTable,
-      filter: filter,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'restaurant_id',
+        value: restaurantId,
+      ),
       channelId: 'restaurant_reviews_$restaurantId',
     );
   }
 
   /// Subscribe to menu items for a restaurant
   Stream<dynamic> subscribeToRestaurantMenu(String restaurantId) {
-    final filter = 'restaurant_id=eq.$restaurantId';
     return subscribeToTable(
       table: AppConstants.menuItemsTable,
-      filter: filter,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'restaurant_id',
+        value: restaurantId,
+      ),
       channelId: 'restaurant_menu_$restaurantId',
     );
   }
 
   /// Subscribe to nearby restaurants (location-based)
   Stream<dynamic> subscribeToNearbyRestaurants(double latitude, double longitude, double radius) {
-    // This would require a PostgreSQL function
+    // This would require a PostgreSQL function or custom filtering
     return subscribeToTable(
       table: AppConstants.restaurantsTable,
-      channelId: 'nearby_restaurants_${latitude}_${longitude}',
+      channelId: 'nearby_restaurants_${latitude}_$longitude',
+    );
+  }
+
+  /// Subscribe to chat messages for a conversation
+  Stream<dynamic> subscribeToMessages(String conversationId) {
+    return subscribeToTable(
+      table: 'messages',
+      event: PostgresChangeEvent.insert,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'conversation_id',
+        value: conversationId,
+      ),
+      channelId: 'conversation_messages_$conversationId',
+    );
+  }
+
+  /// Subscribe to typing indicators for a conversation
+  Stream<dynamic> subscribeToTypingIndicator(String conversationId) {
+    return subscribeToTable(
+      table: 'typing_indicators',
+      event: PostgresChangeEvent.update,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'conversation_id',
+        value: conversationId,
+      ),
+      channelId: 'conversation_typing_$conversationId',
     );
   }
 
   /// ==================== BROADCAST CHANNELS ====================
 
-  /// Send broadcast event to all connected devices
+  /// Send broadcast message
   Future<void> broadcastEvent(String eventName, Map<String, dynamic> payload) async {
     try {
       final channel = _supabase.channel('broadcast_events');
-      await channel.sendBroadcastEvent('system', {'event': eventName, ...payload});
+
+      await channel.sendBroadcastMessage(
+        event: 'system',
+        payload: {'event': eventName, ...payload},
+      );
+
       _logger.info('Broadcast event sent: $eventName');
-      
+      channel.subscribe();
+
     } catch (e) {
       _logger.error('Failed to broadcast event $eventName: $e');
       throw SubscriptionException('Failed to broadcast event: $e');
@@ -186,245 +230,107 @@ class RealtimeService {
   /// Listen to broadcast events
   Stream<dynamic> listenToBroadcasts(String eventName) {
     final streamController = StreamController<dynamic>.broadcast();
-    
+
     final channel = _supabase.channel('broadcast_listener');
+
     channel.onBroadcast(
-      'system',
-      (payload) {
+      event: 'system',
+      callback: (payload) {
         if (payload['event'] == eventName) {
           streamController.add(payload);
         }
       },
     );
-    
+
     channel.subscribe();
-    
+
     return streamController.stream;
   }
 
   /// ==================== PRESENCE TRACKING ====================
 
   /// Track user presence (online status)
-  void trackUserPresence(String userId, Map<String, dynamic> status) {
-    final channel = _supabase.channel('presence_tracking');
-    
-    channel.onChannelSubscribeStateChange((realtimeSubscriptionStatus, reason) {
-      if (realtimeSubscriptionStatus == RealtimeSubscriptionStatus.subscribed) {
-        channel.track(userId, status);
-        _logger.info('User presence tracking started for: $userId');
-      }
-    });
-    
-    channel.subscribe();
+  Future<void> trackUserPresence(String userId, Map<String, dynamic> status) async {
+    try {
+      final channel = _supabase.channel('presence_tracking');
+
+      channel.subscribe();
+
+      await channel.track(status);
+      _logger.info('User presence tracking started for: $userId');
+
+    } catch (e) {
+      _logger.error('Failed to track presence for $userId: $e');
+      throw SubscriptionException('Failed to track presence: $e');
+    }
   }
 
-  /// Listen to user presence changes
-  Stream<Map<String, dynamic>> listenToPresenceChanges(List<String> userIds) {
-    final streamController = StreamController<Map<String, dynamic>>.broadcast();
-    
-    final channel = _supabase.channel('presence_listener');
-    channel.onPresence((presence) {
-      for (final userId in userIds) {
-        if (presence.joins.containsKey(userId)) {
-          streamController.add({
-            'user_id': userId,
-            'status': presence.joins[userId],
-            'event': 'online',
-          });
-        }
-        
-        if (presence.leaves.containsKey(userId)) {
-          streamController.add({
-            'user_id': userId,
-            'status': presence.leaves[userId],
-            'event': 'offline',
-          });
-        }
-      }
-    });
-    
-    channel.subscribe();
-    
-    return streamController.stream;
-  }
-
-  /// ==================== UTILITY METHODS ====================
+  /// ==================== CHANNEL MANAGEMENT ====================
 
   /// Unsubscribe from a specific channel
-  void unsubscribeFromChannel(String channelId) {
-    if (_channels.containsKey(channelId)) {
-      _channels[channelKey]?.unsubscribe();
-      _channels.remove(channelId);
-      
-      if (_streamControllers.containsKey(channelId)) {
-        _streamControllers[channelId]?.close();
-        _streamControllers.remove(channelId);
+  Future<void> unsubscribeFromChannel(String channelKey) async {
+    try {
+      final channel = _channels[channelKey];
+      if (channel != null) {
+        await _supabase.removeChannel(channel);
+        _channels.remove(channelKey);
+        _logger.info('Unsubscribed from channel: $channelKey');
       }
-      
-      _logger.info('Unsubscribed from channel: $channelId');
+
+      final controller = _streamControllers[channelKey];
+      if (controller != null) {
+        await controller.close();
+        _streamControllers.remove(channelKey);
+      }
+    } catch (e) {
+      _logger.error('Failed to unsubscribe from $channelKey: $e');
     }
   }
 
   /// Unsubscribe from all channels
-  void unsubscribeFromAll() {
-    for (final channelId in _channels.keys) {
-      unsubscribeFromChannel(channelId);
+  Future<void> unsubscribeAll() async {
+    _logger.info('Unsubscribing from all channels...');
+
+    final channelKeys = _channels.keys.toList();
+    for (final key in channelKeys) {
+      await unsubscribeFromChannel(key);
     }
-    
-    _supabase.removeAllChannels();
-    _logger.info('Unsubscribed from all channels');
-  }
 
-  /// Get list of active subscriptions
-  List<String> getActiveSubscriptions() {
-    return _channels.keys.toList();
-  }
-
-  /// Check if subscription is active
-  bool isSubscribed(String channelId) {
-    return _channels.containsKey(channelId);
-  }
-
-  /// Resubscribe to all channels after reconnection
-  Future<void> resubscribeAll() async {
-    final activeSubscriptions = getActiveSubscriptions();
-    
-    // Store subscription details to resubscribe
-    // This would require storing subscription parameters
-    
-    _logger.info('Resubscribing to ${activeSubscriptions.length} channels');
-    
-    for (final channelId in activeSubscriptions) {
-      // Implementation would depend on stored subscription details
-      unsubscribeFromChannel(channelId);
-    }
-  }
-
-  /// ==================== REAL-TIME EVENTS HANDLING ====================
-
-  /// Handle order status updates
-  Stream<Map<String, dynamic>> handleOrderStatusUpdates(String userId) {
-    return subscribeToUserOrders(userId).map((payload) {
-      if (payload.eventType == RealtimeChangeEvent.update) {
-        final order = payload.newRecord;
-        return {
-          'type': 'order_status_update',
-          'order_id': order['id'],
-          'status': order['status'],
-          'updated_at': order['updated_at'],
-          'data': order,
-        };
-      }
-      return null;
-    }).where((event) => event != null).cast<Map<String, dynamic>>();
-  }
-
-  /// Handle new notifications
-  Stream<Map<String, dynamic>> handleNewNotifications(String userId) {
-    return subscribeToUserNotifications(userId).map((payload) {
-      if (payload.eventType == RealtimeChangeEvent.insert) {
-        final notification = payload.newRecord;
-        return {
-          'type': 'new_notification',
-          'notification_id': notification['id'],
-          'title': notification['title'],
-          'body': notification['body'],
-          'data': notification,
-        };
-      }
-      return null;
-    }).where((event) => event != null).cast<Map<String, dynamic>>();
-  }
-
-  /// Handle delivery location updates
-  Stream<Map<String, dynamic>> handleDeliveryTracking(String orderId) {
-    return subscribeToOrderTracking(orderId).map((payload) {
-      if (payload.eventType == RealtimeChangeEvent.update) {
-        final order = payload.newRecord;
-        return {
-          'type': 'delivery_location_update',
-          'order_id': order['id'],
-          'latitude': order['delivery_latitude'],
-          'longitude': order['delivery_longitude'],
-          'estimated_time': order['estimated_delivery_time'],
-          'status': order['delivery_status'],
-          'data': order,
-        };
-      }
-      return null;
-    }).where((event) => event != null).cast<Map<String, dynamic>>();
-  }
-
-  /// Handle restaurant availability changes
-  Stream<Map<String, dynamic>> handleRestaurantAvailability(String restaurantId) {
-    return subscribeToRestaurantUpdates(restaurantId).map((payload) {
-      if (payload.eventType == RealtimeChangeEvent.update) {
-        final restaurant = payload.newRecord;
-        return {
-          'type': 'restaurant_availability_update',
-          'restaurant_id': restaurant['id'],
-          'is_available': restaurant['is_available'],
-          'open_status': restaurant['open_status'],
-          'data': restaurant,
-        };
-      }
-      return null;
-    }).where((event) => event != null).cast<Map<String, dynamic>>();
-  }
-
-  /// ==================== STREAM UTILITIES ====================
-
-  /// Merge multiple streams
-  Stream<dynamic> _mergeStreams(List<Stream<dynamic>> streams) {
-    return StreamGroup.merge(streams);
-  }
-
-  /// Debounce stream events
-  Stream<T> debounceStream<T>(Stream<T> stream, Duration duration) {
-    return stream.transform(StreamTransformer<T, T>.fromHandlers(
-      handleData: (data, sink) {
-        Timer(duration, () => sink.add(data));
-      },
-    ));
-  }
-
-  /// Throttle stream events
-  Stream<T> throttleStream<T>(Stream<T> stream, Duration duration) {
-    return stream.transform(
-      ThrottleStreamTransformer<T>(
-        () => TimerStream(null, duration),
-        trailing: true,
-      ),
-    );
-  }
-
-  /// Filter stream by specific event type
-  Stream<T> filterStreamByType<T, K>(
-    Stream<T> stream,
-    String eventType,
-    K Function(T) extractor,
-  ) {
-    return stream.where((event) =>
-        event is Map && event.containsKey('type') && event['type'] == eventType
-    ).map((event) => extractor(event as T));
-  }
-
-  /// Clean up resources
-  void dispose() {
-    unsubscribeFromAll();
-    
-    for (final controller in _streamControllers.values) {
-      controller.close();
-    }
+    _channels.clear();
     _streamControllers.clear();
-    
-    _logger.info('Realtime service disposed');
-  }
-}
 
-/// Extension for StreamGroup
-extension StreamGroupExtensions on Stream<dynamic> {
-  static Stream<dynamic> merge(List<Stream<dynamic>> streams) {
-    return StreamGroup<dynamic>(StreamController<dynamic>.broadcast());
+    _logger.success('All channels unsubscribed');
+  }
+
+  /// Get active channel count
+  int get activeChannelCount => _channels.length;
+
+  /// Get list of active channels
+  List<String> get activeChannels => _channels.keys.toList();
+
+  /// Check if a channel is active
+  bool isChannelActive(String channelKey) => _channels.containsKey(channelKey);
+
+  /// ==================== UTILITY METHODS ====================
+
+  /// Merge multiple streams into one
+  Stream<T> _mergeStreams<T>(List<Stream<T>> streams) {
+    final controller = StreamController<T>.broadcast();
+
+    for (final stream in streams) {
+      stream.listen(
+        (data) => controller.add(data),
+        onError: (error) => controller.addError(error),
+      );
+    }
+
+    return controller.stream;
+  }
+
+  /// Dispose and clean up
+  Future<void> dispose() async {
+    _logger.info('Disposing RealtimeService...');
+    await unsubscribeAll();
+    _logger.success('RealtimeService disposed');
   }
 }

@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase show AuthException;
 import '../constants/app_constants.dart';
 import '../errors/exceptions.dart';
 import 'logger_service.dart';
@@ -20,21 +22,22 @@ class SupabaseService {
   /// Initialize Supabase with configuration
   Future<void> initialize() async {
     try {
-      _supabase = Supabase.initialize(
+      final supabase = await Supabase.initialize(
         url: AppConstants.supabaseUrl,
         anonKey: AppConstants.supabaseAnonKey,
-      ).client;
+      );
+      _supabase = supabase.client;
 
       // Set up auth state listener
       _supabase.auth.onAuthStateChange.listen((data) {
-        final AuthEvent event = data.event;
+        final AuthChangeEvent event = data.event;
         final Session? session = data.session;
-        
+
         _logger.info('Auth state changed: $event, Session: ${session?.user.id}');
-        
-        if (event == AuthEvent.signedIn) {
+
+        if (event == AuthChangeEvent.signedIn) {
           _handleSignedIn(session);
-        } else if (event == AuthEvent.signedOut) {
+        } else if (event == AuthChangeEvent.signedOut) {
           _handleSignedOut();
         }
       });
@@ -94,9 +97,9 @@ class SupabaseService {
       
       _logger.success('User signed up successfully: ${response.user?.id}');
       return response;
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       _logger.error('Sign up error: ${e.message}');
-      throw AuthException(e.message);
+      throw AppAuthException(e.message);
     } catch (e) {
       _logger.error('Unexpected sign up error: $e');
       throw SupabaseException('Failed to sign up: $e');
@@ -116,9 +119,9 @@ class SupabaseService {
       
       _logger.success('User signed in successfully: ${response.user?.id}');
       return response;
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       _logger.error('Sign in error: ${e.message}');
-      throw AuthException(e.message);
+      throw AppAuthException(e.message);
     } catch (e) {
       _logger.error('Unexpected sign in error: $e');
       throw SupabaseException('Failed to sign in: $e');
@@ -126,18 +129,18 @@ class SupabaseService {
   }
 
   /// Sign in with Google OAuth
-  Future<AuthResponse> signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
     try {
-      final response = await _supabase.auth.signInWithOAuth(
-        Provider.google,
+      final result = await _supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
         redirectTo: 'io.supabase.fooddelivery://auth-callback',
       );
-      
+
       _logger.success('Google OAuth initiated');
-      return response;
-    } on AuthException catch (e) {
+      return result;
+    } on supabase.AuthException catch (e) {
       _logger.error('Google sign in error: ${e.message}');
-      throw AuthException(e.message);
+      throw AppAuthException(e.message);
     } catch (e) {
       _logger.error('Unexpected Google sign in error: $e');
       throw SupabaseException('Failed to sign in with Google: $e');
@@ -149,9 +152,9 @@ class SupabaseService {
     try {
       await _supabase.auth.signOut();
       _logger.success('User signed out successfully');
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       _logger.error('Sign out error: ${e.message}');
-      throw AuthException(e.message);
+      throw AppAuthException(e.message);
     } catch (e) {
       _logger.error('Unexpected sign out error: $e');
       throw SupabaseException('Failed to sign out: $e');
@@ -163,9 +166,9 @@ class SupabaseService {
     try {
       await _supabase.auth.resetPasswordForEmail(email);
       _logger.success('Password reset email sent to: $email');
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       _logger.error('Password reset error: ${e.message}');
-      throw AuthException(e.message);
+      throw AppAuthException(e.message);
     } catch (e) {
       _logger.error('Unexpected password reset error: $e');
       throw SupabaseException('Failed to reset password: $e');
@@ -179,9 +182,9 @@ class SupabaseService {
         UserAttributes(password: newPassword),
       );
       _logger.success('Password updated successfully');
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       _logger.error('Password update error: ${e.message}');
-      throw AuthException(e.message);
+      throw AppAuthException(e.message);
     } catch (e) {
       _logger.error('Unexpected password update error: $e');
       throw SupabaseException('Failed to update password: $e');
@@ -207,9 +210,9 @@ class SupabaseService {
     try {
       await _supabase.auth.refreshSession();
       _logger.success('Session refreshed successfully');
-    } on AuthException catch (e) {
+    } on supabase.AuthException catch (e) {
       _logger.error('Session refresh error: ${e.message}');
-      throw AuthException(e.message);
+      throw AppAuthException(e.message);
     } catch (e) {
       _logger.error('Unexpected session refresh error: $e');
       throw SupabaseException('Failed to refresh session: $e');
@@ -225,22 +228,15 @@ class SupabaseService {
     required Function(Map<String, dynamic>) onInsert,
     required Function(Map<String, dynamic>) onUpdate,
     required Function(Map<String, dynamic>) onDelete,
-    String? filter,
+    PostgresChangeFilter? filter,
   }) {
     final channel = _supabase.channel(channelId);
-    
-    PostgresChangeBuilder eventFilter = PostgresChanges(
+
+    channel.onPostgresChanges(
       event: PostgresChangeEvent.all,
       schema: 'public',
       table: table,
-    );
-    
-    if (filter != null) {
-      eventFilter = eventFilter.filter(filter);
-    }
-    
-    channel.onPostgresChanges(
-      [eventFilter],
+      filter: filter,
       callback: (payload) {
         switch (payload.eventType) {
           case PostgresChangeEvent.insert:
@@ -252,10 +248,12 @@ class SupabaseService {
           case PostgresChangeEvent.delete:
             onDelete(payload.oldRecord);
             break;
+          default:
+            break;
         }
       },
     );
-    
+
     channel.subscribe();
     return channel;
   }
@@ -277,8 +275,8 @@ class SupabaseService {
     try {
       final response = await _supabase.storage
           .from(bucket)
-          .upload(path, file, fileOptions: fileOptions);
-      
+          .upload(path, file, fileOptions: fileOptions ?? const FileOptions());
+
       _logger.success('File uploaded successfully: $path');
       return response;
     } catch (e) {

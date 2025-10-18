@@ -23,7 +23,7 @@ class _MainAppWrapperState extends State<MainAppWrapper> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    SearchScreen(),
+    const SearchScreen(),
     const _PlaceholderScreen(title: 'Orders', message: 'Orders screen coming soon!'),
     const ProfileMenuScreen(),
   ];

@@ -34,7 +34,7 @@ class DatabaseService {
     try {
       _logger.database('select', table, details: 'columns: $columns, where: $where, limit: $limit');
 
-      var query = _supabase
+      dynamic query = _supabase
           .from(table)
           .select(columns.join(', '));
 
@@ -68,8 +68,8 @@ class DatabaseService {
 
       final response = await query;
       
-      _logger.success('Selected ${response is List ? response.length : 1} record(s) from $table');
-      return response is List ? List<Map<String, dynamic>>.from(response) : [response as Map<String, dynamic>];
+      _logger.success('Selected ${response.length} record(s) from $table');
+      return List<Map<String, dynamic>>.from(response);
 
     } on PostgrestException catch (e) {
       _logger.error('Database select error: ${e.message}');
@@ -202,18 +202,18 @@ class DatabaseService {
     try {
       _logger.database('count', table, details: 'where: $where');
 
-      var query = _supabase.from(table).select('*', const CountStrategy());
+      dynamic query = _supabase.from(table).select('*');
 
       if (where != null) {
         query = query.or(where);
       }
 
       final response = await query;
-      final count = response is List && response.isNotEmpty ? response[0]['count'] as int : 0;
+      final count = (response as List).length;
 
       _logger.success('Counted $count records in $table');
       return count;
-      
+
     } catch (e) {
       throw DatabaseException('Failed to count records in $table: $e');
     }
@@ -226,13 +226,20 @@ class DatabaseService {
 
       final response = await _supabase
           .from(table)
-          .select(column)
-          .distinct();
+          .select(column);
 
-      final values = (response as List<dynamic>).map((row) => row[column]).toList();
-      _logger.success('Found ${values.length} distinct values for $column in $table');
-      return values;
-      
+      // Manual distinct filtering
+      final values = <dynamic>{};
+      for (final row in response as List<dynamic>) {
+        if (row[column] != null) {
+          values.add(row[column]);
+        }
+      }
+
+      final distinctValues = values.toList();
+      _logger.success('Found ${distinctValues.length} distinct values for $column in $table');
+      return distinctValues;
+
     } catch (e) {
       throw DatabaseException('Failed to get distinct values for $column in $table: $e');
     }
@@ -387,12 +394,12 @@ class DatabaseService {
   /// Check if record exists
   Future<bool> exists(String table, String idColumn, dynamic id) async {
     try {
-      final count = await _supabase
+      final result = await _supabase
           .from(table)
-          .select('count', const CountStrategy())
+          .select('*')
           .eq(idColumn, id);
 
-      return (count as List).isNotEmpty && (count.first['count'] as int) > 0;
+      return (result as List).isNotEmpty;
     } catch (e) {
       throw DatabaseException('Failed to check if record exists in $table: $e');
     }
