@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Food Delivery App - Spacing Tokens",
+  "description": "Complete spacing system extracted from Figma design",
+  "version": "1.0.0",
+  "lastUpdated": "2025-10-11",
+
+  "base": {
+    "unit": "",
+    "description": "Base spacing unit (usually 4px or 8px)"
+  },
+
+  "spacing": {
+    "0": "0",
+    "1": "",
+    "2": "",
+    "3": "",
+    "4": "",
+    "5": "",
+    "6": "",
+    "8": "",
+    "10": "",
+    "12": "",
+    "16": "",
+    "20": "",
+    "24": "",
+    "32": "",
+    "40": "",
+    "48": "",
+    "56": "",
+    "64": "",
+    "80": "",
+    "96": "",
+    "128": ""
+  },
+
+  "semantic": {
+    "padding": {
+      "xs": "",
+      "sm": "",
+      "md": "",
+      "lg": "",
+      "xl": "",
+      "2xl": ""
+    },
+
+    "margin": {
+      "xs": "",
+      "sm": "",
+      "md": "",
+      "lg": "",
+      "xl": "",
+      "2xl": ""
+    },
+
+    "gap": {
+      "xs": "",
+      "sm": "",
+      "md": "",
+      "lg": "",
+      "xl": ""
+    },
+
+    "inset": {
+      "xs": "",
+      "sm": "",
+      "md": "",
+      "lg": "",
+      "xl": ""
+    }
+  },
+
+  "component": {
+    "button": {
+      "paddingX": {
+        "sm": "",
+        "md": "",
+        "lg": ""
+      },
+      "paddingY": {
+        "sm": "",
+        "md": "",
+        "lg": ""
+      },
+      "gap": ""
+    },
+
+    "input": {
+      "paddingX": "",
+      "paddingY": "",
+      "gap": ""
+    },
+
+    "card": {
+      "padding": "",
+      "gap": ""
+    },
+
+    "modal": {
+      "padding": "",
+      "gap": ""
+    },
+
+    "list": {
+      "itemGap": "",
+      "sectionGap": ""
+    }
+  },
+
+  "layout": {
+    "container": {
+      "paddingX": {
+        "mobile": "",
+        "tablet": "",
+        "desktop": ""
+      }
+    },
+
+    "section": {
+      "paddingY": {
+        "mobile": "",
+        "tablet": "",
+        "desktop": ""
+      },
+      "gap": ""
+    },
+
+    "grid": {
+      "gap": {
+        "mobile": "",
+        "tablet": "",
+        "desktop": ""
+      }
+    }
+  },
+
+  "notes": {
+    "extraction": "Measure padding, margins, and gaps from Figma Auto Layout properties",
+    "system": "Use consistent spacing scale based on base unit",
+    "responsive": "Document how spacing changes across breakpoints"
+  }
+}

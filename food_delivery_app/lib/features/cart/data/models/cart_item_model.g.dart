@@ -3,7 +3,7 @@
 part of 'cart_item_model.dart';
 
 // **************************************************************************
-// TypeAdapter
+// TypeAdapterGenerator
 // **************************************************************************
 
 class CartItemModelAdapter extends TypeAdapter<CartItemModel> {

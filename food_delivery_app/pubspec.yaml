@@ -70,6 +70,14 @@ dependencies:
   # Utils
   uuid: ^4.3.3
   logger: ^2.0.2+1
+  path: ^1.8.3
+
+  # Supabase Backend Integration
+  supabase_flutter: ^2.3.0
+
+  # Security & Encryption
+  crypto: ^3.0.3
+  flutter_secure_storage: ^9.0.0
 
 dev_dependencies:
   flutter_test:

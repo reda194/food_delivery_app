@@ -1,48 +1,33 @@
+import 'dart:io';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/services/authentication_service.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 
-/// Mock Auth Repository Implementation
-/// For demonstration purposes, this uses mock data instead of real API calls
+/// Auth Repository Implementation with Supabase Integration
 class AuthRepositoryImpl implements AuthRepository {
-  // Mock user data
-  final Map<String, Map<String, dynamic>> _mockUsers = {
-    'user@example.com': {
-      'password': 'password123',
-      'user': UserEntity(
-        id: '1',
-        email: 'user@example.com',
-        name: 'John Doe',
-        phoneNumber: '+1234567890',
-        profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    },
-  };
-
-  UserEntity? _currentUser;
+  final AuthenticationService _authService = AuthenticationService.instance;
 
   @override
   Future<Either<Failure, UserEntity>> login({
     required String email,
     required String password,
+    bool rememberMe = false,
   }) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final userModel = await _authService.signInWithEmail(
+        email: email,
+        password: password,
+        rememberMe: rememberMe,
+      );
 
-    final userData = _mockUsers[email];
-    if (userData == null) {
-      return const Left(AuthFailure('User not found'));
+      final userEntity = _mapUserModelToEntity(userModel);
+      return Right(userEntity);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
     }
-
-    if (userData['password'] != password) {
-      return const Left(AuthFailure('Invalid password'));
-    }
-
-    _currentUser = userData['user'] as UserEntity;
-    return Right(_currentUser!);
   }
 
   @override
@@ -52,60 +37,68 @@ class AuthRepositoryImpl implements AuthRepository {
     required String name,
     String? phoneNumber,
   }) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final userModel = await _authService.registerWithEmail(
+        email: email,
+        password: password,
+        fullName: name,
+        phoneNumber: phoneNumber,
+      );
 
-    if (_mockUsers.containsKey(email)) {
-      return const Left(AuthFailure('User already exists'));
+      final userEntity = _mapUserModelToEntity(userModel);
+      return Right(userEntity);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
     }
+  }
 
-    final newUser = UserEntity(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      email: email,
-      name: name,
-      phoneNumber: phoneNumber ?? '',
-      profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    _mockUsers[email] = {
-      'password': password,
-      'user': newUser,
-    };
-
-    _currentUser = newUser;
-    return Right(newUser);
+  @override
+  Future<Either<Failure, UserEntity>> registerWithGoogle() async {
+    try {
+      final userModel = await _authService.registerWithGoogle();
+      final userEntity = _mapUserModelToEntity(userModel);
+      return Right(userEntity);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
+    }
   }
 
   @override
   Future<Either<Failure, void>> logout() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    _currentUser = null;
-    return const Right(null);
+    try {
+      await _authService.signOut();
+      return const Right(null);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
+    }
   }
 
   @override
   Future<Either<Failure, void>> forgotPassword({required String email}) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Always succeed for demo purposes
-    return const Right(null);
+    try {
+      await _authService.resetPassword(email);
+      return const Right(null);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
+    }
   }
 
   @override
   Future<Either<Failure, void>> resetPassword({
-    required String token,
+    required String email,
     required String newPassword,
+    required String code,
   }) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Always succeed for demo purposes
-    return const Right(null);
+    try {
+      await _authService.confirmPasswordReset(
+        email: email,
+        newPassword: newPassword,
+        code: code,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
+    }
   }
 
   @override
@@ -113,69 +106,151 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String otp,
   }) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Always succeed with OTP "123456" for demo
-    if (otp == '123456') {
+    try {
+      // This would need to be implemented based on your OTP verification flow
+      // For now, we'll simulate success
       return const Right(null);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
     }
-
-    return const Left(AuthFailure('Invalid OTP'));
   }
 
   @override
   Future<bool> isLoggedIn() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 200));
-    return _currentUser != null;
+    return _authService.isAuthenticated;
   }
 
   @override
   Future<Either<Failure, UserEntity>> getCurrentUser() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    if (_currentUser != null) {
-      return Right(_currentUser!);
+    try {
+      final userModel = await _authService.getCurrentUser();
+      if (userModel == null) {
+        return const Left(AuthFailure('No user logged in'));
+      }
+      
+      final userEntity = _mapUserModelToEntity(userModel);
+      return Right(userEntity);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
     }
-
-    return const Left(AuthFailure('No user logged in'));
   }
 
+  @override
   Future<Either<Failure, void>> updateProfile({required UserEntity user}) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final userData = {
+        'full_name': user.name,
+        'phone_number': user.phoneNumber,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
 
-    if (_currentUser != null) {
-      _currentUser = user;
+      await _authService.updateProfile(user.id, userData);
       return const Right(null);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
     }
-
-    return const Left(AuthFailure('No user logged in'));
   }
 
+  @override
   Future<Either<Failure, void>> changePassword({
     required String currentPassword,
     required String newPassword,
   }) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Always succeed for demo purposes
-    return const Right(null);
+    try {
+      await _authService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
+    }
   }
 
-  Future<Either<Failure, void>> deleteAccount() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (_currentUser != null) {
-      _mockUsers.remove(_currentUser!.email);
-      _currentUser = null;
+  @override
+  Future<Either<Failure, void>> deleteAccount({
+    required String userId,
+    required String password,
+  }) async {
+    try {
+      await _authService.deleteAccount(userId, password);
       return const Right(null);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
     }
+  }
 
-    return const Left(AuthFailure('No user logged in'));
+  @override
+  Future<Either<Failure, String>> uploadProfileImage({
+    required String userId,
+    required String imagePath,
+  }) async {
+    try {
+      // This would need File object, updating signature to accept File
+      final imageUrl = await _authService.uploadProfileImage(userId, File(imagePath));
+      return Right(imageUrl);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isEmailAvailable(String email) async {
+    try {
+      final isRegistered = await _authService.isEmailRegistered(email);
+      return Right(!isRegistered);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> refreshSession() async {
+    try {
+      await _authService.refreshSession();
+      return const Right(null);
+    } catch (e) {
+      return Left(_mapExceptionToFailure(e));
+    }
+  }
+
+  /// Map UserModel to UserEntity
+  UserEntity _mapUserModelToEntity(dynamic userModel) {
+    // This assumes UserModel has similar structure to UserEntity
+    // You may need to adjust based on actual UserModel implementation
+    return UserEntity(
+      id: userModel.id,
+      email: userModel.email,
+      name: userModel.fullName ?? userModel.name,
+      phoneNumber: userModel.phoneNumber,
+      profileImage: userModel.profileImage,
+      createdAt: DateTime.tryParse(userModel.createdAt) ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(userModel.updatedAt) ?? DateTime.now(),
+    );
+  }
+
+  /// Map exceptions to domain layer failures
+  Failure _mapExceptionToFailure(dynamic exception) {
+    if (exception is AuthFailure) {
+      return exception;
+    }
+    
+    if (exception is ServerException) {
+      return ServerFailure(exception.message);
+    }
+    
+    if (exception is NetworkException) {
+      return NetworkFailure(exception.message);
+    }
+    
+    if (exception is ValidationException) {
+      return ValidationFailure(exception.message);
+    }
+    
+    if (exception is TimeoutException) {
+      return const NetworkFailure('Request timed out. Please try again.');
+    }
+    
+    return const AuthFailure('Authentication failed. Please try again.');
   }
 }

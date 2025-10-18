@@ -17,8 +17,7 @@ PaymentMethodModel _$PaymentMethodModelFromJson(Map<String, dynamic> json) =>
       isDefault: json['isDefault'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$PaymentMethodModelToJson(
-        PaymentMethodModel instance) =>
+Map<String, dynamic> _$PaymentMethodModelToJson(PaymentMethodModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,

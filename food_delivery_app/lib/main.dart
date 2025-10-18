@@ -8,6 +8,11 @@ import 'core/theme/app_theme.dart';
 import 'core/routes/app_router.dart';
 import 'core/routes/route_names.dart';
 import 'core/network/api_client.dart';
+import 'core/services/supabase_service.dart';
+import 'core/services/authentication_service.dart';
+import 'core/services/database_service.dart';
+import 'core/services/realtime_service.dart';
+import 'core/services/logger_service.dart';
 import 'features/home/domain/repositories/home_repository.dart';
 import 'features/home/domain/usecases/get_featured_restaurants_usecase.dart';
 import 'features/home/domain/usecases/get_categories_usecase.dart';
@@ -49,6 +54,29 @@ import 'features/food_details/data/repositories/food_details_repository_impl.dar
 import 'features/food_details/data/datasources/food_details_local_datasource.dart';
 import 'features/food_details/presentation/bloc/food_details_bloc.dart';
 
+/// Initialize all backend services
+Future<void> _initializeServices() async {
+  try {
+    // Initialize Logger first
+    LoggerService.instance.info('Initializing application services...');
+
+    // Initialize Supabase & Authentication
+    await SupabaseService.instance.initialize();
+    LoggerService.instance.success('Supabase initialized');
+
+    // Database and Real-time services are singleton instances
+    // They will be lazily initialized when first accessed
+    DatabaseService.instance;
+    RealtimeService.instance;
+    AuthenticationService.instance;
+
+    LoggerService.instance.success('All backend services initialized successfully');
+  } catch (e, stackTrace) {
+    LoggerService.instance.error('Failed to initialize services: $e', e, stackTrace);
+    rethrow;
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -59,6 +87,14 @@ void main() async {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
+
+  // Initialize Supabase
+  try {
+    await _initializeServices();
+  } catch (e) {
+    // Handle initialization error gracefully
+    debugPrint('Failed to initialize services: $e');
+  }
 
   // Initialize Hive
   final appDocumentDir = await getApplicationDocumentsDirectory();

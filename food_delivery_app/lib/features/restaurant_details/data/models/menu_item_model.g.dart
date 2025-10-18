@@ -20,14 +20,14 @@ MenuItemModel _$MenuItemModelFromJson(Map<String, dynamic> json) =>
       isVegan: json['isVegan'] as bool? ?? false,
       isSpicy: json['isSpicy'] as bool? ?? false,
       discount: (json['discount'] as num?)?.toDouble(),
-      preparationTime: json['preparationTime'] as int? ?? 15,
+      preparationTime: (json['preparationTime'] as num?)?.toInt() ?? 15,
       allergens: (json['allergens'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      calories: json['calories'] as int? ?? 0,
+      calories: (json['calories'] as num?)?.toInt() ?? 0,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      reviewCount: json['reviewCount'] as int? ?? 0,
+      reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$MenuItemModelToJson(MenuItemModel instance) =>

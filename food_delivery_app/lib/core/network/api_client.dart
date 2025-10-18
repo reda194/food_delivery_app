@@ -11,7 +11,7 @@ class ApiClient {
   late Dio _dio;
 
   // Mock mode flag - set to true to use mock data instead of real API
-  static const bool _useMockData = true;
+  static const bool _useMockData = false; // Changed to false for production
 
   ApiClient._internal() {
     _dio = Dio(_baseOptions);

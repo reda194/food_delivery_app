@@ -27,6 +27,16 @@ import '../../features/category/presentation/pages/category_screen.dart';
 // import '../../features/profile/presentation/pages/notifications_screen.dart';
 // import '../../features/profile/presentation/pages/help_screen.dart';
 import '../../features/search/presentation/pages/search_screen.dart';
+import '../../features/favorites/presentation/pages/saved_foods_screen.dart';
+import '../../features/settings/presentation/pages/settings_screen.dart';
+import '../../features/notifications/presentation/pages/notifications_screen.dart';
+import '../../features/favorites/presentation/bloc/favorites_bloc.dart';
+import '../../features/favorites/domain/usecases/get_favorites_usecase.dart';
+import '../../features/favorites/domain/usecases/add_to_favorites_usecase.dart';
+import '../../features/favorites/domain/usecases/remove_from_favorites_usecase.dart';
+import '../../features/favorites/data/datasources/favorites_local_datasource.dart';
+import '../../features/favorites/data/repositories/favorites_repository_impl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/restaurant_details/domain/entities/menu_item_entity.dart';
 import '../../features/restaurant_details/presentation/bloc/restaurant_details_bloc.dart';
 import '../../features/restaurant_details/presentation/bloc/restaurant_details_event.dart';
@@ -262,10 +272,7 @@ class AppRouter {
 
       case RouteNames.settings:
         return MaterialPageRoute(
-          builder: (_) => const _PlaceholderScreen(
-            title: 'Settings',
-            message: 'Settings screen coming soon!',
-          ),
+          builder: (_) => const SettingsScreen(),
         );
 
       case RouteNames.addresses:
@@ -278,21 +285,49 @@ class AppRouter {
 
       case RouteNames.favorites:
         return MaterialPageRoute(
-          builder: (_) => const _PlaceholderScreen(
-            title: 'Favorites',
-            message: 'Favorites screen coming soon!',
+          builder: (_) => FutureBuilder<SharedPreferences>(
+            future: SharedPreferences.getInstance(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFFFF4757),
+                    ),
+                  ),
+                );
+              }
+
+              // Initialize dependencies for favorites
+              final sharedPreferences = snapshot.data!;
+              final favoritesLocalDataSource = FavoritesLocalDataSourceImpl(
+                sharedPreferences: sharedPreferences,
+              );
+              final favoritesRepository = FavoritesRepositoryImpl(
+                localDataSource: favoritesLocalDataSource,
+              );
+              final getFavoritesUseCase = GetFavoritesUseCase(favoritesRepository);
+              final addToFavoritesUseCase = AddToFavoritesUseCase(favoritesRepository);
+              final removeFromFavoritesUseCase = RemoveFromFavoritesUseCase(favoritesRepository);
+
+              return BlocProvider(
+                create: (context) => FavoritesBloc(
+                  getFavorites: getFavoritesUseCase,
+                  addToFavorites: addToFavoritesUseCase,
+                  removeFromFavorites: removeFromFavoritesUseCase,
+                ),
+                child: const SavedFoodsScreen(),
+              );
+            },
           ),
         );
 
       case RouteNames.search:
-        return MaterialPageRoute(builder: (_) => SearchScreen());
+        return MaterialPageRoute(builder: (_) => const SearchScreen());
 
       case RouteNames.notifications:
         return MaterialPageRoute(
-          builder: (_) => const _PlaceholderScreen(
-            title: 'Notifications',
-            message: 'Notifications screen coming soon!',
-          ),
+          builder: (_) => const NotificationsScreen(),
         );
 
       case RouteNames.help:

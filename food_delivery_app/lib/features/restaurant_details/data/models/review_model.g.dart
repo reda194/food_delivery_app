@@ -18,7 +18,7 @@ ReviewModel _$ReviewModelFromJson(Map<String, dynamic> json) => ReviewModel(
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      helpfulCount: json['helpfulCount'] as int? ?? 0,
+      helpfulCount: (json['helpfulCount'] as num?)?.toInt() ?? 0,
       isVerifiedPurchase: json['isVerifiedPurchase'] as bool? ?? false,
     );
 

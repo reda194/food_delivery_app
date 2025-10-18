@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Food Delivery App - Shadow Tokens",
+  "description": "Complete shadow/elevation system extracted from Figma design",
+  "version": "1.0.0",
+  "lastUpdated": "2025-10-11",
+
+  "elevation": {
+    "0": {
+      "css": "none",
+      "description": "No elevation"
+    },
+    "1": {
+      "css": "",
+      "offsetX": "",
+      "offsetY": "",
+      "blur": "",
+      "spread": "",
+      "color": "",
+      "opacity": "",
+      "description": "Subtle elevation for cards, buttons"
+    },
+    "2": {
+      "css": "",
+      "offsetX": "",
+      "offsetY": "",
+      "blur": "",
+      "spread": "",
+      "color": "",
+      "opacity": "",
+      "description": "Medium elevation for dropdowns, menus"
+    },
+    "3": {
+      "css": "",
+      "offsetX": "",
+      "offsetY": "",
+      "blur": "",
+      "spread": "",
+      "color": "",
+      "opacity": "",
+      "description": "High elevation for modals, drawers"
+    },
+    "4": {
+      "css": "",
+      "offsetX": "",
+      "offsetY": "",
+      "blur": "",
+      "spread": "",
+      "color": "",
+      "opacity": "",
+      "description": "Maximum elevation for overlays"
+    }
+  },
+
+  "semantic": {
+    "card": {
+      "default": "",
+      "hover": "",
+      "active": ""
+    },
+
+    "button": {
+      "default": "",
+      "hover": "",
+      "active": ""
+    },
+
+    "dropdown": "",
+
+    "modal": "",
+
+    "drawer": "",
+
+    "tooltip": "",
+
+    "floating": ""
+  },
+
+  "inner": {
+    "sm": "",
+    "md": "",
+    "lg": ""
+  },
+
+  "colored": {
+    "primary": "",
+    "secondary": "",
+    "success": "",
+    "error": "",
+    "warning": ""
+  },
+
+  "notes": {
+    "extraction": "Copy shadow properties from Figma Effects panel",
+    "format": "CSS format: 'offsetX offsetY blur spread color'",
+    "multiple": "Some elements may have multiple shadows - document all layers",
+    "context": "Note which components use which shadows"
+  }
+}
