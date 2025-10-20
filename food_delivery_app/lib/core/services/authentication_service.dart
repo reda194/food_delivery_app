@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase show AuthException;
 import '../constants/app_constants.dart';
 import '../errors/exceptions.dart';
 import '../models/user_model.dart';
@@ -75,7 +74,7 @@ class AuthenticationService {
       
       return userModel;
       
-    } on gotrue.AuthException catch (e) {
+    } on AuthException catch (e) {
       _logger.error('Registration error: $e');
       throw AppException('Registration failed: ${e.message}');
     } catch (e) {
@@ -92,13 +91,13 @@ class AuthenticationService {
     try {
       _logger.auth('register_with_google');
 
-      final authResponse = await _supabaseService.signInWithGoogle();
+      await _supabaseService.signInWithGoogle();
       
       // This would need to be handled in OAuth callback
       // For now, we'll return a placeholder
       throw AppException('Google registration requires OAuth callback implementation');
       
-    } on supabase.AuthException catch (e) {
+    } on AuthException catch (e) {
       _logger.error('Google registration error: $e');
       rethrow;
     } catch (e) {
@@ -158,7 +157,7 @@ class AuthenticationService {
       _logger.success('User signed in successfully: ${userModel.id}');
       return userModel;
       
-    } on supabase.AuthException catch (e) {
+    } on AuthException catch (e) {
       _logger.error('Login error: $e');
       rethrow;
     } catch (e) {
@@ -218,7 +217,7 @@ class AuthenticationService {
       
       return userModel;
       
-    } on supabase.AuthException catch (e) {
+    } on AuthException catch (e) {
       _logger.error('OAuth callback error: $e');
       rethrow;
     } catch (e) {
@@ -240,7 +239,7 @@ class AuthenticationService {
       
       _logger.success('Password reset email sent to: $email');
       
-    } on supabase.AuthException catch (e) {
+    } on AuthException catch (e) {
       _logger.error('Password reset error: $e');
       rethrow;
     } catch (e) {
@@ -264,7 +263,7 @@ class AuthenticationService {
       
       _logger.success('Password reset completed for: $email');
       
-    } on supabase.AuthException catch (e) {
+    } on AuthException catch (e) {
       _logger.error('Password reset confirmation error: $e');
       rethrow;
     } catch (e) {
@@ -287,7 +286,7 @@ class AuthenticationService {
       
       _logger.success('User signed out successfully');
       
-    } on supabase.AuthException catch (e) {
+    } on AuthException catch (e) {
       _logger.error('Sign out error: $e');
       rethrow;
     } catch (e) {
@@ -326,7 +325,7 @@ class AuthenticationService {
       await _supabaseService.refreshSession();
       _logger.success('Session refreshed successfully');
       
-    } on supabase.AuthException catch (e) {
+    } on AuthException catch (e) {
       _logger.error('Session refresh error: $e');
       rethrow;
     } catch (e) {
@@ -392,7 +391,7 @@ class AuthenticationService {
       
       _logger.success('Password changed successfully');
       
-    } on supabase.AuthException catch (e) {
+    } on AuthException catch (e) {
       _logger.error('Password change error: $e');
       rethrow;
     } catch (e) {
@@ -485,10 +484,9 @@ class AuthenticationService {
         return null;
       }
 
-      final userEmail = await _secureStorage.read(key: 'user_email');
       // For auto-login, user would need to enter password
       // This is a simplified implementation
-      
+
       return null;
       
     } catch (e) {

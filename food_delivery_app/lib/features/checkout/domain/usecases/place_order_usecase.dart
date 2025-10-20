@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../cart/domain/entities/cart_item_entity.dart';
 import '../entities/order_entity.dart';
 import '../repositories/checkout_repository.dart';
 
@@ -11,7 +12,7 @@ class PlaceOrderUseCase {
 
   Future<Either<Failure, OrderEntity>> call({
     required String restaurantId,
-    required List<dynamic> items,
+    required List<CartItemEntity> items,
     required String addressId,
     required String paymentMethodId,
     String? promoCode,

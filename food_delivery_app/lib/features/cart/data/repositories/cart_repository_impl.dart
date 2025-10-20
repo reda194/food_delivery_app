@@ -124,4 +124,72 @@ class CartRepositoryImpl implements CartRepository {
       return Left(CacheFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, bool>> checkAndClearExpiredCart(
+    Duration expirationDuration,
+  ) async {
+    try {
+      final cartResult = await getCart();
+      return await cartResult.fold(
+        (failure) => Left(failure),
+        (cart) async {
+          if (cart.isExpired) {
+            await clearCart();
+            return const Right(true); // Cart was expired and cleared
+          }
+          return const Right(false); // Cart is still valid
+        },
+      );
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, bool>>> checkItemsAvailability() async {
+    try {
+      final items = await localDataSource.getCartItems();
+      final itemIds = items.map((item) => item.menuItemId).toList();
+
+      if (itemIds.isEmpty) {
+        return const Right({});
+      }
+
+      // Call API to check availability
+      final response = await apiClient.post(
+        '/menu/check-availability',
+        data: {'item_ids': itemIds},
+      );
+
+      if (response.statusCode == 200) {
+        final availabilityMap = Map<String, bool>.from(
+          response.data['availability'] as Map,
+        );
+        return Right(availabilityMap);
+      }
+
+      return const Left(ServerFailure('Failed to check availability'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> validateCartRestaurant(
+    String restaurantId,
+  ) async {
+    try {
+      final cartResult = await getCart();
+      return cartResult.fold(
+        (failure) => Left(failure),
+        (cart) {
+          final canAdd = cart.canAddItemFromRestaurant(restaurantId);
+          return Right(canAdd);
+        },
+      );
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
 }

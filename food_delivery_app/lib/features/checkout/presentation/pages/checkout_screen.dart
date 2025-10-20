@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../core/routes/route_names.dart';
+import '../../../order_successful/domain/models/order_success_args.dart';
 import '../bloc/checkout_bloc.dart';
 import '../bloc/checkout_event.dart';
 import '../bloc/checkout_state.dart';
@@ -30,14 +32,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       body: BlocConsumer<CheckoutBloc, CheckoutState>(
         listener: (context, state) {
           if (state is OrderPlaced) {
+            // Calculate estimated delivery time (use from order or default to 35 minutes)
+            final estimatedDeliveryTime = state.order.estimatedDeliveryTime ??
+                DateTime.now().add(const Duration(minutes: 35));
+
+            // Map cart items to order item summaries
+            final orderItems = state.order.items
+                .map((item) => OrderItemSummary(
+                      name: item.menuItemName,
+                      quantity: item.quantity,
+                      price: item.totalPrice,
+                    ))
+                .toList();
+
             Navigator.pushReplacementNamed(
               context,
-              '/order-successful',
-              arguments: {
-                'orderId': state.order.id,
-                'totalAmount': state.order.total,
-                'estimatedDeliveryTime': '30-45 mins',
-              },
+              RouteNames.orderSuccessful,
+              arguments: OrderSuccessArgs(
+                orderId: state.order.id,
+                orderNumber: state.order.id.substring(0, 8).toUpperCase(),
+                estimatedDeliveryTime: estimatedDeliveryTime,
+                totalAmount: state.order.total,
+                deliveryAddress: state.order.addressText,
+                driverName: null, // Will be assigned later
+                driverPhone: null, // Will be assigned later
+                driverImage: null, // Will be assigned later
+                items: orderItems,
+              ),
             );
           } else if (state is OrderPlacementFailed) {
             ScaffoldMessenger.of(context).showSnackBar(

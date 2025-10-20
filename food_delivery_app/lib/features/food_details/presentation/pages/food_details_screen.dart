@@ -136,7 +136,7 @@ class FoodDetailsScreen extends StatelessWidget {
           // Bookmark Button
           GestureDetector(
             onTap: () {
-              context.read<FoodDetailsBloc>().add(const ToggleFavoriteEvent());
+              context.read<FoodDetailsBloc>().add(ToggleFavoriteEvent());
             },
             child: Container(
               width: 48,
@@ -382,7 +382,7 @@ class FoodDetailsScreen extends StatelessWidget {
             children: [
               GestureDetector(
                 onTap: quantity > 1
-                    ? () => context.read<FoodDetailsBloc>().add(const DecrementQuantityEvent())
+                    ? () => context.read<FoodDetailsBloc>().add(DecrementQuantityEvent())
                     : null,
                 child: Icon(
                   Icons.chevron_left,
@@ -393,7 +393,7 @@ class FoodDetailsScreen extends StatelessWidget {
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: quantity < 99
-                    ? () => context.read<FoodDetailsBloc>().add(const IncrementQuantityEvent())
+                    ? () => context.read<FoodDetailsBloc>().add(IncrementQuantityEvent())
                     : null,
                 child: Icon(
                   Icons.chevron_right,
@@ -413,7 +413,7 @@ class FoodDetailsScreen extends StatelessWidget {
                   ? null
                   : () {
                       // Handle add to cart
-                      context.read<FoodDetailsBloc>().add(const AddToCartEvent());
+                      context.read<FoodDetailsBloc>().add(AddToCartEvent());
                       
                       // Also add to cart using CartBloc
                       if (state is FoodDetailsLoaded) {

@@ -8,6 +8,7 @@ import '../../features/authentication/presentation/pages/forgot_password_screen.
 import '../../features/authentication/presentation/pages/verification_screen.dart';
 import '../../features/order_tracking/presentation/pages/order_tracking_screen.dart';
 import '../../features/order_successful/presentation/pages/order_successful_screen.dart';
+import '../../features/order_successful/domain/models/order_success_args.dart';
 import '../../features/call/presentation/pages/call_screen.dart';
 import '../../features/chat/presentation/pages/chat_screen.dart';
 import '../../features/profile/presentation/pages/profile_menu_screen.dart';
@@ -89,18 +90,13 @@ class AppRouter {
           ),
         );
 
-      case '/order-successful':
-        final args = settings.arguments as Map<String, dynamic>?;
+      case RouteNames.orderSuccessful:
+        final args = settings.arguments as OrderSuccessArgs?;
+        if (args == null) {
+          return _errorRoute('Order success arguments are required');
+        }
         return MaterialPageRoute(
-          builder: (_) => OrderSuccessfulScreen(
-            orderId: args?['orderId'] as String?,
-            driverName: args?['driverName'] as String?,
-            driverPhone: args?['driverPhone'] as String?,
-            driverImage: args?['driverImage'] as String?,
-            driverOrderId: args?['driverOrderId'] as String?,
-            deliveryAddress: args?['deliveryAddress'] as String?,
-            estimatedMinutes: args?['estimatedMinutes'] as int?,
-          ),
+          builder: (_) => OrderSuccessfulScreen(args: args),
         );
 
       case RouteNames.orderTracking:
@@ -119,21 +115,28 @@ class AppRouter {
 
       case RouteNames.call:
         final args = settings.arguments as Map<String, dynamic>?;
+        if (args == null) {
+          return _errorRoute('Call screen arguments are required');
+        }
         return MaterialPageRoute(
           builder: (_) => CallScreen(
-            driverName: args?['driverName'] as String?,
-            driverPhone: args?['driverPhone'] as String?,
-            driverImage: args?['driverImage'] as String?,
+            orderId: args['orderId'] as String? ?? '',
+            driverName: args['driverName'] as String? ?? 'Driver',
+            driverPhone: args['driverPhone'] as String? ?? '',
+            driverImage: args['driverImage'] as String? ?? '',
           ),
         );
 
       case RouteNames.chat:
         final args = settings.arguments as Map<String, dynamic>?;
+        if (args == null) {
+          return _errorRoute('Chat screen arguments are required');
+        }
         return MaterialPageRoute(
           builder: (_) => ChatScreen(
-            driverName: args?['driverName'] as String?,
-            driverPhone: args?['driverPhone'] as String?,
-            driverImage: args?['driverImage'] as String?,
+            orderId: args['orderId'] as String? ?? '',
+            driverName: args['driverName'] as String?,
+            driverImage: args['driverImage'] as String?,
           ),
         );
 

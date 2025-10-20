@@ -4,6 +4,7 @@ class RouteNames {
 
   // Authentication Routes
   static const String splash = '/';
+  static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
@@ -25,6 +26,7 @@ class RouteNames {
   // Order Routes
   static const String orders = '/orders';
   static const String orderDetails = '/order-details';
+  static const String orderSuccessful = '/order-successful';
   static const String orderTracking = '/order-tracking';
   static const String call = '/call';
   static const String chat = '/chat';

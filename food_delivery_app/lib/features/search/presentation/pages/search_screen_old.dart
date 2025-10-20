@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/routes/route_names.dart';
@@ -7,6 +8,7 @@ import '../widgets/search_filter_bottom_sheet.dart';
 import '../bloc/search_bloc.dart';
 import '../bloc/search_event.dart';
 import '../bloc/search_state.dart';
+import '../../domain/entities/search_filter_entity.dart';
 
 /// Search Screen - Search for food, restaurants, categories
 class SearchScreen extends StatelessWidget {
@@ -92,7 +94,7 @@ class SearchScreen extends StatelessWidget {
                                 GestureDetector(
                                   onTap: () {
                                     searchController.clear();
-                                    context.read<SearchBloc>().add(const ClearSearchQueryEvent());
+                                    context.read<SearchBloc>().add(ClearSearchQueryEvent());
                                   },
                                   child: Icon(
                                     Icons.close,
@@ -110,7 +112,15 @@ class SearchScreen extends StatelessWidget {
                           showSearchFilterBottomSheet(
                             context,
                             onApplyFilter: (filters) {
-                              context.read<SearchBloc>().add(ApplySearchFilterEvent(filters));
+                              // Convert Map<String, dynamic> to SearchFilterEntity
+                              final RangeValues? priceRange = filters['priceRange'];
+                              final searchFilters = SearchFilterEntity(
+                                category: filters['category'],
+                                sortBy: filters['sortBy'],
+                                minPrice: priceRange?.start,
+                                maxPrice: priceRange?.end,
+                              );
+                              context.read<SearchBloc>().add(ApplySearchFilterEvent(searchFilters));
                             },
                           );
                         },
@@ -174,7 +184,7 @@ class SearchScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                context.read<SearchBloc>().add(const LoadRecentSearchesEvent());
+                context.read<SearchBloc>().add(LoadRecentSearchesEvent());
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
@@ -201,7 +211,7 @@ class SearchScreen extends StatelessWidget {
     }
 
     // Initial state - load recent searches
-    context.read<SearchBloc>().add(const LoadRecentSearchesEvent());
+    context.read<SearchBloc>().add(LoadRecentSearchesEvent());
     return _buildRecentSearches(context);
   }
 

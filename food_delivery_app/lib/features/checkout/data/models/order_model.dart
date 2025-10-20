@@ -1,30 +1,48 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../../domain/entities/order_entity.dart';
 
 part 'order_model.g.dart';
 
 /// Order Model - Data transfer object with JSON serialization
 @JsonSerializable()
-class OrderModel extends OrderEntity {
+class OrderModel {
+  final String id;
+  final String restaurantId;
+  final String restaurantName;
+  final List<Map<String, dynamic>> items;
+  final double subtotal;
+  final double deliveryFee;
+  final double discount;
+  final double tax;
+  final double total;
+  final String addressId;
+  final String addressText;
+  final String paymentMethodId;
+  final String paymentMethod;
+  final String status;
+  final DateTime createdAt;
+  final DateTime? estimatedDeliveryTime;
+  final String? specialInstructions;
+  final String? promoCode;
+
   const OrderModel({
-    required super.id,
-    required super.restaurantId,
-    required super.restaurantName,
-    required super.items,
-    required super.subtotal,
-    required super.deliveryFee,
-    required super.discount,
-    required super.tax,
-    required super.total,
-    required super.addressId,
-    required super.addressText,
-    required super.paymentMethodId,
-    required super.paymentMethod,
-    required super.status,
-    required super.createdAt,
-    super.estimatedDeliveryTime,
-    super.specialInstructions,
-    super.promoCode,
+    required this.id,
+    required this.restaurantId,
+    required this.restaurantName,
+    required this.items,
+    required this.subtotal,
+    required this.deliveryFee,
+    required this.discount,
+    required this.tax,
+    required this.total,
+    required this.addressId,
+    required this.addressText,
+    required this.paymentMethodId,
+    required this.paymentMethod,
+    required this.status,
+    required this.createdAt,
+    this.estimatedDeliveryTime,
+    this.specialInstructions,
+    this.promoCode,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) =>

@@ -52,10 +52,11 @@ dependencies:
   geolocator: ^11.0.0
   geocoding: ^2.1.1
 
-  # Firebase (Optional - for push notifications, analytics) - Temporarily disabled
-  # firebase_core: ^2.24.2
-  # firebase_messaging: ^14.7.9
-  # firebase_analytics: ^10.8.0
+  # Firebase - For push notifications and analytics
+  firebase_core: ^2.24.2
+  firebase_messaging: ^14.7.9
+  firebase_analytics: ^10.8.0
+  flutter_local_notifications: ^17.0.0
 
   # Date & Time
   intl: ^0.19.0
@@ -67,10 +68,16 @@ dependencies:
   # Permissions
   permission_handler: ^11.2.0
 
+  # WebRTC for Video/Audio Calls
+  flutter_webrtc: ^0.9.48+hotfix.1
+  agora_rtc_engine: ^6.3.0  # Alternative: Agora for production-grade calls
+
   # Utils
   uuid: ^4.3.3
   logger: ^2.0.2+1
   path: ^1.8.3
+  path_provider: ^2.1.2
+  package_info_plus: ^5.0.1
 
   # Supabase Backend Integration
   supabase_flutter: ^2.3.0

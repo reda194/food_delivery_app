@@ -157,7 +157,7 @@ class RestaurantCard extends StatelessWidget {
                       Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
-                        '${restaurant.distance.toStringAsFixed(1)} km',
+                        restaurant.distance != null ? '${restaurant.distance!.toStringAsFixed(1)} km' : 'Distance unavailable',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],

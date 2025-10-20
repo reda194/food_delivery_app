@@ -131,10 +131,10 @@ class PerformanceService {
       min: min.toInt(),
       max: max.toInt(),
       mean: mean,
-      median: median,
-      p90: p90,
-      p95: p95,
-      p99: p99,
+      median: median.toDouble(),
+      p90: p90.toDouble(),
+      p95: p95.toDouble(),
+      p99: p99.toDouble(),
     );
   }
 

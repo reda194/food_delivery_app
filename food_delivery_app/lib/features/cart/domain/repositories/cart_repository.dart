@@ -28,4 +28,13 @@ abstract class CartRepository {
 
   /// Get cart item count
   Future<Either<Failure, int>> getCartItemCount();
+
+  /// Check and clear expired cart
+  Future<Either<Failure, bool>> checkAndClearExpiredCart(Duration expirationDuration);
+
+  /// Check if items are still available
+  Future<Either<Failure, Map<String, bool>>> checkItemsAvailability();
+
+  /// Validate cart for cross-restaurant items
+  Future<Either<Failure, bool>> validateCartRestaurant(String restaurantId);
 }

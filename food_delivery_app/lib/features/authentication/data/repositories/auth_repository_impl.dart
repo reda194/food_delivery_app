@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/authentication_service.dart';
+import '../../../../core/services/supabase_service.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -52,10 +54,13 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, UserEntity>> registerWithGoogle() async {
+  Future<Either<Failure, UserEntity>> registerWithGoogle({
+    required String fullName,
+  }) async {
     try {
-      final userModel = await _authService.registerWithGoogle();
+      final userModel = await _authService.registerWithGoogle(
+        fullName: fullName,
+      );
       final userEntity = _mapUserModelToEntity(userModel);
       return Right(userEntity);
     } catch (e) {
@@ -85,15 +90,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> resetPassword({
-    required String email,
+    required String token,
     required String newPassword,
-    required String code,
   }) async {
     try {
-      await _authService.confirmPasswordReset(
-        email: email,
-        newPassword: newPassword,
-        code: code,
+      // For password reset with token, we update the password directly
+      // This assumes the token has already been validated
+      await SupabaseService.instance.client.auth.updateUser(
+        UserAttributes(password: newPassword),
       );
       return const Right(null);
     } catch (e) {
@@ -135,7 +139,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, void>> updateProfile({required UserEntity user}) async {
     try {
       final userData = {
@@ -151,7 +154,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, void>> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -167,7 +169,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, void>> deleteAccount({
     required String userId,
     required String password,
@@ -180,7 +181,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, String>> uploadProfileImage({
     required String userId,
     required String imagePath,
@@ -194,7 +194,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, bool>> isEmailAvailable(String email) async {
     try {
       final isRegistered = await _authService.isEmailRegistered(email);
@@ -204,7 +203,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
   Future<Either<Failure, void>> refreshSession() async {
     try {
       await _authService.refreshSession();

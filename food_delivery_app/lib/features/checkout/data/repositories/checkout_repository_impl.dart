@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../cart/domain/entities/cart_item_entity.dart';
 import '../../domain/entities/address_entity.dart';
 import '../../domain/entities/payment_method_entity.dart';
 import '../../domain/entities/order_entity.dart';
@@ -124,7 +125,7 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
   @override
   Future<Either<Failure, OrderEntity>> placeOrder({
     required String restaurantId,
-    required List<dynamic> items,
+    required List<CartItemEntity> items,
     required String addressId,
     required String paymentMethodId,
     String? promoCode,
@@ -140,6 +141,57 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
         specialInstructions: specialInstructions,
       );
       return Right(result);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> createPaymentIntent({
+    required double amount,
+    required String currency,
+    Map<String, dynamic>? metadata,
+  }) async {
+    try {
+      // Implementation would go here - placeholder for now
+      return const Left(ServerFailure('Payment intent creation not implemented'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> confirmPayment({
+    required String paymentIntentId,
+    required String paymentMethodId,
+  }) async {
+    try {
+      // Implementation would go here - placeholder for now
+      return const Left(ServerFailure('Payment confirmation not implemented'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> generateReceipt(String orderId) async {
+    try {
+      // Implementation would go here - placeholder for now
+      return const Left(ServerFailure('Receipt generation not implemented'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> validateAddressLocation(
+    String address,
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      // Implementation would go here - placeholder for now
+      return const Left(ServerFailure('Address validation not implemented'));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
